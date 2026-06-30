@@ -1,0 +1,21 @@
+name: Slack Notify
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          curl -sS -X POST https://slack.com/api/chat.postMessage \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            --data "{\"channel\":\"$SLACK_CHANNEL_ID\",\"text\":\":rocket: thinc-framework: new push to main by ${{ github.actor }} — ${{ github.event.head_commit.message }}\"}" \
+            | grep -q '"ok":true' && echo "Slack notification sent" || (echo "Slack notification failed"; exit 1)
